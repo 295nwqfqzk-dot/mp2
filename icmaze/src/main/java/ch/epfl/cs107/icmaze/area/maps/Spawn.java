@@ -1,6 +1,7 @@
 package ch.epfl.cs107.icmaze.area.maps;
 
 import ch.epfl.cs107.icmaze.actor.ICMazePlayer;
+import ch.epfl.cs107.icmaze.actor.Portal;
 import ch.epfl.cs107.icmaze.actor.collectable.Heart;
 import ch.epfl.cs107.icmaze.actor.collectable.Key;
 import ch.epfl.cs107.icmaze.actor.collectable.Pickaxe;
@@ -28,6 +29,16 @@ public final class Spawn extends ICMazeArea {
         registerActor(new Heart(this, new DiscreteCoordinates(4, 5)));
         registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(6, 5), Integer.MAX_VALUE));
         registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(1, 2), Integer.MAX_VALUE - 1));
+        Portal eastPortal = new Portal(
+                this,
+                AreaPortals.E.getOrientation().opposite(),
+                getPortalCoords(AreaPortals.E),
+                "icmaze/Boss",
+                getArrivalCoords(AreaPortals.W),
+                Integer.MAX_VALUE
+        );
+        eastPortal.setState(Portal.State.LOCKED);
+        registerActor(eastPortal);
 
     }
 
