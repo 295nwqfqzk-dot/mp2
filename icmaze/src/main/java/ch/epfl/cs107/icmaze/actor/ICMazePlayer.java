@@ -2,6 +2,7 @@ package ch.epfl.cs107.icmaze.actor;
 
 import ch.epfl.cs107.icmaze.KeyBindings;
 import ch.epfl.cs107.icmaze.actor.collectable.Heart;
+import ch.epfl.cs107.icmaze.actor.collectable.Key;
 import ch.epfl.cs107.icmaze.actor.collectable.Pickaxe;
 import ch.epfl.cs107.icmaze.handler.ICMazeInteractionVisitor;
 import ch.epfl.cs107.play.areagame.actor.Interactable;
@@ -17,11 +18,14 @@ import ch.epfl.cs107.play.window.Canvas;
 import ch.epfl.cs107.play.window.Keyboard;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class ICMazePlayer extends ICMazeActor implements Interactor {
 
+    private final Set<Integer> keys = new HashSet<>();
     private final ICMazePlayerInteractionHandler handler = new ICMazePlayerInteractionHandler();
     private State state;
     private static final int STEP = 1;
@@ -137,6 +141,22 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                 heart.collect();
             }
         }
+        @Override
+        public void interactWith(Key key, boolean isCellInteraction) {
+            if (isCellInteraction) {
+                addKey(key.getId());
+                key.collect();
+            }
+        }
+    }
+
+
+    public void addKey(int id) {
+        keys.add(id);
+    }
+
+    public boolean hasKey(int id) {
+        return keys.contains(id);
     }
 
 }

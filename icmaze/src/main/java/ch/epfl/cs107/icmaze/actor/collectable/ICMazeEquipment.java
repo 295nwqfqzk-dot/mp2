@@ -13,7 +13,7 @@ public abstract class ICMazeEquipment extends ICMazeCollectable {
     protected ICMazeEquipment(Area area, Orientation orientation, DiscreteCoordinates position, String spriteName) {
         super(area, position);
         orientate(orientation);
-        sprite = new Sprite("icmaze/pickaxe", .75f, .75f, this);
+        sprite = new Sprite(spriteName, .75f, .75f, this);
     }
     @Override
     public void draw(Canvas canvas) {

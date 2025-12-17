@@ -2,6 +2,7 @@ package ch.epfl.cs107.icmaze.area.maps;
 
 import ch.epfl.cs107.icmaze.actor.ICMazePlayer;
 import ch.epfl.cs107.icmaze.actor.collectable.Heart;
+import ch.epfl.cs107.icmaze.actor.collectable.Key;
 import ch.epfl.cs107.icmaze.actor.collectable.Pickaxe;
 import ch.epfl.cs107.icmaze.area.ICMazeArea;
 import ch.epfl.cs107.play.engine.actor.Background;
@@ -25,6 +26,7 @@ public final class Spawn extends ICMazeArea {
 
         registerActor(new Pickaxe(this, Orientation.DOWN, new DiscreteCoordinates(5, 4)));
         registerActor(new Heart(this, new DiscreteCoordinates(4, 5)));
+
     }
 
    // @Override
