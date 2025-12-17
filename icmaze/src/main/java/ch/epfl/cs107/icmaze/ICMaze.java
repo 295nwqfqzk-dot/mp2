@@ -1,5 +1,6 @@
 package ch.epfl.cs107.icmaze;
 
+import ch.epfl.cs107.icmaze.area.ICMazeArea;
 import ch.epfl.cs107.icmaze.area.maps.BossArea;
 import ch.epfl.cs107.icmaze.area.maps.Spawn;
 import ch.epfl.cs107.play.areagame.AreaGame;
@@ -10,7 +11,7 @@ public final class ICMaze extends AreaGame {
 
     private void createAreas() {
         addArea(new Spawn());
-        addArea(new BossArea());
+        addArea(new BossArea(ICMazeArea.AreaPortals.W));
     }
 
     @Override

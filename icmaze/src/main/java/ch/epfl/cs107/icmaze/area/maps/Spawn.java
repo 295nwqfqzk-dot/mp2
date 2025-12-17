@@ -12,7 +12,7 @@ import ch.epfl.cs107.play.math.Orientation;
 public final class Spawn extends ICMazeArea {
 
     public Spawn() {
-        super("SmallArea"); // 2.1: behavior commun
+        super("SmallArea",8); // 2.1: behavior commun
     }
 
     @Override
