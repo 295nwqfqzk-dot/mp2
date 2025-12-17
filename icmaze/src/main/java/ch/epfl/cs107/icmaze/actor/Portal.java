@@ -42,7 +42,7 @@ public class Portal extends AreaEntity implements Interactable {
 
         this.state = State.INVISIBLE; // par défaut
 
-        // sprites donnés dans l'énoncé
+        // sprites del'énoncé
         invisibleSprite = new Sprite(
                 "icmaze/invisibleDoor_" + orientation.ordinal(),
                 (orientation.ordinal() + 1) % 2 + 1,

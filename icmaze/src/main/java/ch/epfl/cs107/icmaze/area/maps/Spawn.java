@@ -1,5 +1,6 @@
 package ch.epfl.cs107.icmaze.area.maps;
 
+import ch.epfl.cs107.icmaze.ICMaze;
 import ch.epfl.cs107.icmaze.actor.ICMazePlayer;
 import ch.epfl.cs107.icmaze.actor.Portal;
 import ch.epfl.cs107.icmaze.actor.collectable.Heart;
@@ -21,7 +22,7 @@ public final class Spawn extends ICMazeArea {
     protected void createArea() {
         registerActor(new Background(this, getBehaviorName()));
 
-        ICMazePlayer player = new ICMazePlayer(this, Orientation.DOWN, getPlayerSpawnPosition());
+        ICMazePlayer player = new ICMazePlayer(this, Orientation.DOWN, new DiscreteCoordinates(5, 7));
         registerActor(player);
         setViewCandidate(player);
 
