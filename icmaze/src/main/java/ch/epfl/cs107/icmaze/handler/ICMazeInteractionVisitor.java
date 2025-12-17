@@ -12,6 +12,7 @@ public interface ICMazeInteractionVisitor extends AreaInteractionVisitor {
     default void interactWith(ch.epfl.cs107.icmaze.actor.collectable.Pickaxe pickaxe, boolean isCellInteraction) {}
     default void interactWith(ch.epfl.cs107.icmaze.actor.collectable.Heart heart, boolean isCellInteraction) {}
     default void interactWith(ch.epfl.cs107.icmaze.actor.collectable.Key key, boolean isCellInteraction) {}
+    default void interactWith(ch.epfl.cs107.icmaze.actor.Portal portal, boolean isCellInteraction) {}
   /// Add Interaction method with all non Abstract Interactable
 
 }
