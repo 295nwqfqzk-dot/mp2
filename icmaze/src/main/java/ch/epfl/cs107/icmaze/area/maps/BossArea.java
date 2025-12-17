@@ -2,13 +2,15 @@ package ch.epfl.cs107.icmaze.area.maps;
 
 import ch.epfl.cs107.icmaze.area.ICMazeArea;
 import ch.epfl.cs107.play.engine.actor.Background;
-import ch.epfl.cs107.play.engine.actor.Foreground;
 import ch.epfl.cs107.play.math.DiscreteCoordinates;
 
 public final class BossArea extends ICMazeArea {
 
-    public BossArea() {
-        super("SmallArea");
+    private final AreaPortals entryPortal;
+
+    public BossArea(AreaPortals entryPortal) {
+        super("SmallArea", 8);
+        this.entryPortal = entryPortal;
     }
 
     @Override
@@ -16,10 +18,9 @@ public final class BossArea extends ICMazeArea {
         registerActor(new Background(this, getBehaviorName()));
     }
 
-
     @Override
     public DiscreteCoordinates getPlayerSpawnPosition() {
-        return new DiscreteCoordinates(5, 15);
+        return getArrivalCoords(entryPortal);
     }
 
     @Override
