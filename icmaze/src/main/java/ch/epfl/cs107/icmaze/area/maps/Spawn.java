@@ -26,6 +26,8 @@ public final class Spawn extends ICMazeArea {
 
         registerActor(new Pickaxe(this, Orientation.DOWN, new DiscreteCoordinates(5, 4)));
         registerActor(new Heart(this, new DiscreteCoordinates(4, 5)));
+        registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(6, 5), Integer.MAX_VALUE));
+        registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(1, 2), Integer.MAX_VALUE - 1));
 
     }
 
