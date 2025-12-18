@@ -84,7 +84,7 @@ public class Portal extends AreaEntity implements Interactable {
 
     @Override
     public boolean isCellInteractable() {
-        return false;
+        return state == State.OPEN;
     }
 
     @Override

@@ -33,6 +33,7 @@ public abstract class ICMazeActor extends MovableAreaEntity {
     public void enterArea(Area area, DiscreteCoordinates position) {
         setOwnerArea(area);
         setCurrentPosition(position.toVector());
+        resetMotion();
         area.registerActor(this);
     }
     public void leaveArea() {

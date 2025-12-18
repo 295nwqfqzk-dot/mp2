@@ -45,9 +45,11 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
     private boolean requestViewInteraction = false;
 
     private final ICMazePlayerInteractionHandler handler = new ICMazePlayerInteractionHandler();
+    private final ICMaze game;
 
-    public ICMazePlayer(Area area, Orientation orientation, DiscreteCoordinates position) {
+    public ICMazePlayer(ICMaze game, Area area, Orientation orientation, DiscreteCoordinates position) {
         super(area, orientation, position);
+        this.game = game;
 
         final Vector anchor = new Vector(0, 0);
         final Orientation[] orders = {Orientation.DOWN, Orientation.RIGHT, Orientation.UP, Orientation.LEFT};
@@ -87,7 +89,7 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
 
     @Override
     public boolean wantsViewInteraction() {
-        return requestViewInteraction;
+        return state == State.INTERACTING;
     }
 
     @Override
@@ -129,9 +131,11 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                 break;
 
             case INTERACTING:
-                // pour l’instant : juste revenir à IDLE
-                state = State.IDLE;
-                animation.reset();
+                // Si la touche n'est plus appuyée, on repasse en IDLE
+                if (!keyboard.get(PLAYER_KEY_BINDINGS.interact()).isDown()) {
+                    state = State.IDLE;
+                    animation.reset();
+                }
                 break;
         }
 
@@ -179,20 +183,18 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
 
         @Override
         public void interactWith(Portal portal, boolean isCellInteraction) {
-            if (isCellInteraction) return;
+            if (isCellInteraction) {
+                game.switchArea(portal, ICMazePlayer.this);
+                return;
+            }
 
             // ouverture si besoin
             if (portal.getState() != Portal.State.OPEN) {
                 int needed = portal.getKeyId();
                 if (needed == Portal.NO_KEY_ID || hasKey(needed)) {
                     portal.setState(Portal.State.OPEN);
-                } else {
-                    return;
                 }
             }
-
-            // IMPORTANT : la téléportation sera faite dans ICMaze (pas ici)
-            // ex: game.switchArea(portal, ICMazePlayer.this);
         }
     }
 

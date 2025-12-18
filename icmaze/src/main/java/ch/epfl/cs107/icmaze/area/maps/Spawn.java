@@ -14,15 +14,18 @@ import ch.epfl.cs107.play.math.Orientation;
 
 public final class Spawn extends ICMazeArea {
 
-    public Spawn() {
+    private final ICMaze game;
+
+    public Spawn(ICMaze game) {
         super("SmallArea",8); // 2.1: behavior commun
+        this.game = game;
     }
 
     @Override
     protected void createArea() {
         registerActor(new Background(this, getBehaviorName()));
 
-        ICMazePlayer player = new ICMazePlayer(this, Orientation.DOWN, new DiscreteCoordinates(5, 7));
+        ICMazePlayer player = new ICMazePlayer(game, this, Orientation.DOWN, new DiscreteCoordinates(5, 7));
         registerActor(player);
         setViewCandidate(player);
 
@@ -30,12 +33,14 @@ public final class Spawn extends ICMazeArea {
         registerActor(new Heart(this, new DiscreteCoordinates(4, 5)));
         registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(6, 5), Integer.MAX_VALUE));
         registerActor(new Key(this, Orientation.DOWN, new DiscreteCoordinates(1, 2), Integer.MAX_VALUE - 1));
+        registerActor(new ch.epfl.cs107.icmaze.actor.Rock(this, new DiscreteCoordinates(4, 2)));
+
         Portal eastPortal = new Portal(
                 this,
                 AreaPortals.E.getOrientation().opposite(),
                 getPortalCoords(AreaPortals.E),
-                "icmaze/Boss",
-                getArrivalCoords(AreaPortals.W),
+                "icmaze/SmallArea[1]",
+                new DiscreteCoordinates(1, 4),
                 Integer.MAX_VALUE
         );
         eastPortal.setState(Portal.State.LOCKED);

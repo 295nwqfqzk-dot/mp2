@@ -21,8 +21,8 @@ public final class BossArea extends ICMazeArea {
                 this,
                 AreaPortals.W.getOrientation().opposite(),
                 getPortalCoords(AreaPortals.W),
-                "icmaze/Spawn",
-                getArrivalCoords(AreaPortals.E),
+                "icmaze/LargeArea[3]",
+                new DiscreteCoordinates(30, 16),
                 Portal.NO_KEY_ID
         );
         westPortal.setState(Portal.State.OPEN);

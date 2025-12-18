@@ -13,6 +13,8 @@ public abstract class ICMazeArea extends Area {
     private final int size;
 
 
+    private boolean isStarted;
+
     protected ICMazeArea(String behaviorName, int size) {
         this.behaviorName = behaviorName;
         this.size = size;
@@ -67,14 +69,17 @@ public abstract class ICMazeArea extends Area {
     public boolean begin(Window window, FileSystem fileSystem) {
         if (super.begin(window, fileSystem)) {
             setBehavior(new ICMazeBehavior(window, behaviorName));
-            createArea();
+            if (!isStarted) {
+                createArea();
+                isStarted = true;
+            }
             return true;
         }
         return false;
     }
 
     @Override
-    public final float getCameraScaleFactor() {
+    public float getCameraScaleFactor() {
         return DEFAULT_SCALE_FACTOR;
     }
 }
