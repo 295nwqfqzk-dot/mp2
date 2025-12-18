@@ -15,10 +15,14 @@ import java.util.List;
 public class Rock extends AreaEntity {
 
     private final Sprite sprite;
+    private int hp = 3;
+    private final ch.epfl.cs107.icmaze.actor.Health health;
 
     public Rock(Area area, DiscreteCoordinates position) {
         super(area, Orientation.DOWN, position);
         sprite = new Sprite("rock.2", 1, 1, this);
+        health = new ch.epfl.cs107.icmaze.actor.Health(this, ch.epfl.cs107.play.math.Transform.I.translated(0, 1.1f), 3,
+                false);
     }
 
     @Override
@@ -38,7 +42,7 @@ public class Rock extends AreaEntity {
 
     @Override
     public boolean isViewInteractable() {
-        return false;
+        return true;
     }
 
     @Override
@@ -49,5 +53,21 @@ public class Rock extends AreaEntity {
     @Override
     public void draw(Canvas canvas) {
         sprite.draw(canvas);
+        if (hp < 3) {
+            health.draw(canvas);
+        }
+    }
+
+    public void withdraw() {
+        hp--;
+        health.decrease(1);
+        if (hp <= 0) {
+            getOwnerArea().unregisterActor(this);
+            getOwnerArea().registerActor(new Cloud(getOwnerArea(), getCurrentMainCellCoordinates()));
+            if (ch.epfl.cs107.icmaze.RandomGenerator.rng.nextBoolean()) {
+                getOwnerArea().registerActor(new ch.epfl.cs107.icmaze.actor.collectable.Heart(getOwnerArea(),
+                        getCurrentMainCellCoordinates()));
+            }
+        }
     }
 }

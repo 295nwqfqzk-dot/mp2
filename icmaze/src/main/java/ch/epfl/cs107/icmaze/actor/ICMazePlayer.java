@@ -22,26 +22,34 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import ch.epfl.cs107.play.math.Transform;
 
 public class ICMazePlayer extends ICMazeActor implements Interactor {
 
-    // mon enum
+    // États du joueur
     public enum State {
         IDLE,
-        INTERACTING
+        INTERACTING,
+        ATTACKING_WITH_PICKAXE
     }
 
     private State state = State.IDLE;
 
     private final Set<Integer> keys = new HashSet<>();
+    private boolean hasPickaxe = false;
 
     private final OrientedAnimation animation;
+    private final OrientedAnimation attackAnimation;
+
+    private static final int MAX_HEALTH = 5;
+    private static final int IMMUNITY_DURATION = 24;
+    private final Health health;
+    private final MyCooldown immunity; // Gestion manuelle du cooldown
 
     private static final int STEP = 1;
     private static final KeyBindings.PlayerKeyBindings PLAYER_KEY_BINDINGS = KeyBindings.PLAYER_KEY_BINDINGS;
 
-    // demande d’interaction à distance pendant 1 frame
+    // Demande d'interaction vue (1 frame)
     private boolean requestViewInteraction = false;
 
     private final ICMazePlayerInteractionHandler handler = new ICMazePlayerInteractionHandler();
@@ -52,7 +60,7 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
         this.game = game;
 
         final Vector anchor = new Vector(0, 0);
-        final Orientation[] orders = {Orientation.DOWN, Orientation.RIGHT, Orientation.UP, Orientation.LEFT};
+        final Orientation[] orders = { Orientation.DOWN, Orientation.RIGHT, Orientation.UP, Orientation.LEFT };
 
         animation = new OrientedAnimation(
                 "icmaze/player",
@@ -61,15 +69,36 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                 anchor,
                 orders,
                 4, 1, 2, 16, 32,
-                true
+                true);
+
+        final Vector attackAnchor = new Vector(-.5f, 0);
+        // Ordre standard des sprites
+        final Orientation[] attackOrders = { Orientation.DOWN, Orientation.RIGHT, Orientation.UP, Orientation.LEFT };
+
+        attackAnimation = new OrientedAnimation(
+                "icmaze/player.pickaxe",
+                8, // Plus lent pour être visible
+                this,
+                attackAnchor,
+                attackOrders,
+                4, 2, 2, 32, 32,
+                false // Pas de boucle
         );
+
+        health = new Health(this, Transform.I.translated(0, 1.75f), MAX_HEALTH, true);
+        immunity = new MyCooldown(IMMUNITY_DURATION);
     }
 
-    // --- Keys memory ---
-    public void addKey(int id) { keys.add(id); }
-    public boolean hasKey(int id) { return keys.contains(id); }
+    // --- Mémoire des clés ---
+    public void addKey(int id) {
+        keys.add(id);
+    }
 
-    // --- Interactor ---
+    public boolean hasKey(int id) {
+        return keys.contains(id);
+    }
+
+    // --- Gestion des interactions ---
     @Override
     public List<DiscreteCoordinates> getCurrentCells() {
         return Collections.singletonList(getCurrentMainCellCoordinates());
@@ -78,8 +107,7 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
     @Override
     public List<DiscreteCoordinates> getFieldOfViewCells() {
         return Collections.singletonList(
-                getCurrentMainCellCoordinates().jump(getOrientation().toVector())
-        );
+                getCurrentMainCellCoordinates().jump(getOrientation().toVector()));
     }
 
     @Override
@@ -89,7 +117,12 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
 
     @Override
     public boolean wantsViewInteraction() {
-        return state == State.INTERACTING;
+        return state == State.INTERACTING || (state == State.ATTACKING_WITH_PICKAXE && requestViewInteraction);
+    }
+
+    @Override
+    public boolean isViewInteractable() {
+        return true;
     }
 
     @Override
@@ -97,7 +130,7 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
         other.acceptInteraction(handler, isCellInteraction);
     }
 
-    // --- Actor ---
+    // --- Méthodes d'acteur ---
     @Override
     public boolean takeCellSpace() {
         return true;
@@ -105,11 +138,34 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
 
     @Override
     public void draw(Canvas canvas) {
-        animation.draw(canvas);
+        // Clignoter si immunisé
+        if (!immunity.isCompleted()) {
+            if (immunity.getTicks() % 2 == 0) {
+                drawPlayer(canvas);
+            }
+        } else {
+            drawPlayer(canvas);
+        }
+        health.draw(canvas);
+    }
+
+    private void drawPlayer(Canvas canvas) {
+        if (state == State.ATTACKING_WITH_PICKAXE) {
+            attackAnimation.draw(canvas);
+        } else {
+            animation.draw(canvas);
+        }
     }
 
     @Override
     public void update(float deltaTime) {
+        // Effacer demande de collision précédente
+        if (state != State.INTERACTING) {
+            requestViewInteraction = false;
+        }
+
+        health.increase(0);
+        immunity.update(); // Compteur manuel
         Keyboard keyboard = getOwnerArea().getKeyboard();
 
         switch (state) {
@@ -119,15 +175,17 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                 moveIfPressed(Orientation.RIGHT, keyboard.get(PLAYER_KEY_BINDINGS.right()));
                 moveIfPressed(Orientation.DOWN, keyboard.get(PLAYER_KEY_BINDINGS.down()));
 
-                // touche interaction (E par défaut)
+                // Touche d'interaction
                 Button interactKey = keyboard.get(PLAYER_KEY_BINDINGS.interact());
                 if (interactKey.isPressed()) {
-                    requestViewInteraction = true;  // 1 frame
+                    requestViewInteraction = true; // 1 frame
                     state = State.INTERACTING;
                 }
 
-                if (isDisplacementOccurs()) animation.update(deltaTime);
-                else animation.reset();
+                if (isDisplacementOccurs())
+                    animation.update(deltaTime);
+                else
+                    animation.reset();
                 break;
 
             case INTERACTING:
@@ -137,12 +195,24 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                     animation.reset();
                 }
                 break;
+            case ATTACKING_WITH_PICKAXE:
+                if (attackAnimation.isCompleted()) {
+                    state = State.IDLE;
+                    attackAnimation.reset();
+                } else {
+                    attackAnimation.update(deltaTime);
+                }
+                break;
+        }
+
+        // Déclenchement d'attaque
+        if (state == State.IDLE && hasPickaxe && keyboard.get(PLAYER_KEY_BINDINGS.pickaxe()).isPressed()) {
+            state = State.ATTACKING_WITH_PICKAXE;
+            attackAnimation.reset();
+            requestViewInteraction = true; // Déclenche l'interaction (coup)
         }
 
         super.update(deltaTime);
-
-        // on coupe la demande à distance après 1 update
-        requestViewInteraction = false;
     }
 
     private void moveIfPressed(Orientation orientation, Button button) {
@@ -152,7 +222,17 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
         }
     }
 
-    // --- Interactable (Visitor entry point) ---
+    public void takeDamage(int damage) {
+        if (immunity.isCompleted()) {
+            health.decrease(damage);
+            immunity.start();
+            if (health.isOff()) {
+                game.reset();
+            }
+        }
+    }
+
+    // --- Interactable (Point d'entrée visiteur) ---
     @Override
     public void acceptInteraction(AreaInteractionVisitor v, boolean isCellInteraction) {
         if (v instanceof ICMazeInteractionVisitor) {
@@ -160,17 +240,37 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
         }
     }
 
-    // --- Handler ---
+    // --- Gestionnaire ---
     private class ICMazePlayerInteractionHandler implements ICMazeInteractionVisitor {
 
         @Override
         public void interactWith(Pickaxe pickaxe, boolean isCellInteraction) {
-            if (isCellInteraction) pickaxe.collect();
+            if (isCellInteraction) {
+                hasPickaxe = true;
+                pickaxe.collect();
+            }
+        }
+
+        @Override
+        public void interactWith(Rock rock, boolean isCellInteraction) {
+            if (hasPickaxe && !isCellInteraction) {
+                rock.withdraw();
+            }
+        }
+
+        @Override
+        public void interactWith(LogMonster monster, boolean isCellInteraction) {
+            if (hasPickaxe && !isCellInteraction && state == State.ATTACKING_WITH_PICKAXE) {
+                monster.takeDamage(1); // Le joueur inflige 1 dégât
+            }
         }
 
         @Override
         public void interactWith(Heart heart, boolean isCellInteraction) {
-            if (isCellInteraction) heart.collect();
+            if (isCellInteraction) {
+                health.increase(1);
+                heart.collect();
+            }
         }
 
         @Override
@@ -188,7 +288,6 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
                 return;
             }
 
-            // ouverture si besoin
             if (portal.getState() != Portal.State.OPEN) {
                 int needed = portal.getKeyId();
                 if (needed == Portal.NO_KEY_ID || hasKey(needed)) {
@@ -198,6 +297,31 @@ public class ICMazePlayer extends ICMazeActor implements Interactor {
         }
     }
 
+    // Cooldown manuel simple
+    private class MyCooldown {
+        int duration;
+        int current;
+
+        public MyCooldown(int duration) {
+            this.duration = duration;
+            this.current = duration; // Commence terminé
+        }
+
+        public void update() {
+            if (current < duration)
+                current++;
+        }
+
+        public boolean isCompleted() {
+            return current >= duration;
+        }
+
+        public int getTicks() {
+            return current;
+        }
+
+        public void start() {
+            current = 0;
+        }
+    }
 }
-
-

@@ -8,7 +8,6 @@ import ch.epfl.cs107.icmaze.actor.collectable.Key;
 import ch.epfl.cs107.icmaze.actor.collectable.Pickaxe;
 import ch.epfl.cs107.icmaze.area.ICMazeArea;
 import ch.epfl.cs107.play.engine.actor.Background;
-import ch.epfl.cs107.play.engine.actor.Foreground;
 import ch.epfl.cs107.play.math.DiscreteCoordinates;
 import ch.epfl.cs107.play.math.Orientation;
 
@@ -17,7 +16,7 @@ public final class Spawn extends ICMazeArea {
     private final ICMaze game;
 
     public Spawn(ICMaze game) {
-        super("SmallArea",8); // 2.1: behavior commun
+        super("SmallArea", 8); // 2.1: behavior commun
         this.game = game;
     }
 
@@ -41,17 +40,29 @@ public final class Spawn extends ICMazeArea {
                 getPortalCoords(AreaPortals.E),
                 "icmaze/SmallArea[1]",
                 new DiscreteCoordinates(1, 4),
-                Integer.MAX_VALUE
-        );
+                Integer.MAX_VALUE);
         eastPortal.setState(Portal.State.LOCKED);
         registerActor(eastPortal);
 
+        Portal northPortal = new Portal(this, AreaPortals.N.getOrientation().opposite(), getPortalCoords(AreaPortals.N),
+                "icmaze/Spawn", new DiscreteCoordinates(5, 5), Portal.NO_KEY_ID);
+        registerActor(northPortal);
+
+        Portal westPortal = new Portal(this, AreaPortals.W.getOrientation().opposite(), getPortalCoords(AreaPortals.W),
+                "icmaze/Spawn", new DiscreteCoordinates(5, 5), Portal.NO_KEY_ID);
+        registerActor(westPortal);
+
+        Portal southPortal = new Portal(this, AreaPortals.S.getOrientation().opposite(), getPortalCoords(AreaPortals.S),
+                "icmaze/Spawn", new DiscreteCoordinates(5, 5), Portal.NO_KEY_ID);
+        registerActor(southPortal);
     }
 
-   // @Override
-   /* protected void createArea() {
-        registerActor(new Background(this, getBehaviorName()));
-    }*/
+    // @Override
+    /*
+     * protected void createArea() {
+     * registerActor(new Background(this, getBehaviorName()));
+     * }
+     */
 
     @Override
     public DiscreteCoordinates getPlayerSpawnPosition() {

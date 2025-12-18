@@ -6,12 +6,14 @@ import ch.epfl.cs107.play.math.DiscreteCoordinates;
 import ch.epfl.cs107.play.math.Orientation;
 import ch.epfl.cs107.play.window.Window;
 
+import java.util.Queue;
+
 public abstract class ICMazeArea extends Area {
 
     public static final float DEFAULT_SCALE_FACTOR = 11.f;
     private final String behaviorName;
     private final int size;
-
+    private ICMazeBehavior behavior;
 
     private boolean isStarted;
 
@@ -19,19 +21,24 @@ public abstract class ICMazeArea extends Area {
         this.behaviorName = behaviorName;
         this.size = size;
     }
+
     public enum AreaPortals {
         N(Orientation.UP),
         W(Orientation.LEFT),
         S(Orientation.DOWN),
         E(Orientation.RIGHT);
+
         private final Orientation orientation;
+
         AreaPortals(Orientation orientation) {
             this.orientation = orientation;
         }
+
         public Orientation getOrientation() {
             return orientation;
         }
     }
+
     public DiscreteCoordinates getPortalCoords(AreaPortals portal) {
         return switch (portal) {
             case N -> new DiscreteCoordinates(size / 2, size + 1);
@@ -62,13 +69,16 @@ public abstract class ICMazeArea extends Area {
     protected final String getBehaviorName() {
         return behaviorName;
     }
+
     protected abstract void createArea();
+
     public abstract DiscreteCoordinates getPlayerSpawnPosition();
 
     @Override
     public boolean begin(Window window, FileSystem fileSystem) {
         if (super.begin(window, fileSystem)) {
-            setBehavior(new ICMazeBehavior(window, behaviorName));
+            behavior = new ICMazeBehavior(window, behaviorName);
+            setBehavior(behavior);
             if (!isStarted) {
                 createArea();
                 isStarted = true;
@@ -81,5 +91,18 @@ public abstract class ICMazeArea extends Area {
     @Override
     public float getCameraScaleFactor() {
         return DEFAULT_SCALE_FACTOR;
+    }
+
+    public Queue<Orientation> shortestPath(DiscreteCoordinates from, DiscreteCoordinates to) {
+        if (behavior != null) {
+            return behavior.shortestPath(from, to);
+        }
+        return null;
+    }
+
+    public void setMaze(int[][] maze) {
+        if (behavior != null) {
+            behavior.updateGraph(maze);
+        }
     }
 }
